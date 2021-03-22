@@ -121,7 +121,6 @@ class functions():
 
         self.studyArea = studyArea
 
-        # studyArea = ee.FeatureCollection("users/apoortinga/countries/Ecuador_nxprovincias").geometry().bounds();
 
         landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterDate(self.env.startDate,
                                                                            self.env.endDate).filterBounds(studyArea)
@@ -140,10 +139,10 @@ class functions():
         landsat7 = landsat7.select(self.env.sensorBandDictLandsatSR.get('L7'), self.env.bandNamesLandsat)
 
         landsat = landsat5.merge(landsat7).merge(landsat8)
-        print(landsat.aggregate_array('system:index').getInfo())
+        # print(landsat.aggregate_array('system:index').getInfo())
         # remove below later
         # landsat = landsat.filterMetadata('system:index', 'equals', '2_LC08_043032_20190917')
-        print(landsat.size().getInfo())
+        print('Number of imgs :',landsat.size().getInfo())
         if landsat.size().getInfo() > 0:
 
             # mask clouds using the QA band
@@ -177,7 +176,7 @@ class functions():
                 landsat = ee.ImageCollection(landsat.map(self.terrain))
 
             print("calculating medoid")
-            img = landsat.first()  # self.medoidMosaic(landsat)
+            img = self.medoidMosaic(landsat)
 
             print("rescale")
             img = self.reScaleLandsat(img)
