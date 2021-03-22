@@ -21,6 +21,7 @@ class env(object):
 
         self.dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select(["AVE"])
         self.epsg = "EPSG:26910"
+        self.dryRun = False
 
         ##########################################
         # variable for the landsat data request #
@@ -103,6 +104,7 @@ class env(object):
         self.terrainCorrection = True
 
 
+
 class functions():
     def __init__(self):
         """Initialize the Surfrace Reflectance app."""
@@ -110,7 +112,7 @@ class functions():
         # get the environment
         self.env = env()
 
-    def main(self, studyArea, startDate, endDate, startDay, endDay, week, regionName):
+    def main(self, studyArea, startDate, endDate, startDay, endDay, week, regionName, **kwargs):
 
         self.env.startDate = startDate
         self.env.endDate = endDate
@@ -118,7 +120,7 @@ class functions():
         self.env.startDoy = startDay
         self.env.endDoy = endDay
         self.regionName = regionName
-
+        
         self.studyArea = studyArea
         if regionName == 'Fall':
             self.env.assetId = self.env.assetId + r'Fall_Full/'
@@ -126,6 +128,11 @@ class functions():
             self.env.assetId = self.env.assetId + r'Summer_Full/'
         else:
             raise Exception("Season name must be either: Summer, Fall")
+        
+        if 'dryRun' in kwargs.keys():
+            assert type(kwargs['dryRun']) is bool
+            self.env.dryRun = kwargs['dryRun']
+            print('------------dry run-------------------')
 
         landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterDate(self.env.startDate,
                                                                            self.env.endDate).filterBounds(studyArea)
@@ -635,6 +642,8 @@ class functions():
 
         return img
 
+
+
     def exportMap(self, img, studyArea, week):
 
         geom = studyArea.getInfo();
@@ -650,9 +659,14 @@ class functions():
                                                      maxPixels=1e13,
                                                      crs=self.env.epsg,
                                                      scale=self.env.exportScale)
-
-        # task_ordered.start()
-        print(self.env.assetId + self.env.name + regionName + year + sd + ed)
+        
+        if self.env.dryRun:
+            print('Image will export to :')
+            print(self.env.assetId + self.env.name + regionName + year + sd + ed)
+        else:
+            print('order started')
+            task_ordered.start()
+        
 
 
 if __name__ == "__main__":
@@ -664,7 +678,6 @@ if __name__ == "__main__":
     for i in range(0, 1, 1):
         # 2018 starts at week 104
         startWeek = start + i
-        print(startWeek)
 
         year = ee.Date("2020-01-01")
         # start/end summer:182,243
@@ -683,8 +696,7 @@ if __name__ == "__main__":
         startDate = year.advance(startDay, "day").advance(startWeek, 'year')
         endDate = year.advance(endDay, "day").advance(startWeek, 'year')
 
-
         studyArea = ee.FeatureCollection("users/TEST/CAFire/StudyAreas/finalStudyArea").geometry().bounds().buffer(
             5000)
-        # print(startDate.get('year').getInfo())
-        functions().main(studyArea, startDate, endDate, startDay, endDay, startWeek, seasonName)
+
+        functions().main(studyArea, startDate, endDate, startDay, endDay, startWeek, seasonName,dryRun=False)
