@@ -132,7 +132,12 @@ class functions():
         if 'dryRun' in kwargs.keys():
             assert type(kwargs['dryRun']) is bool
             self.env.dryRun = kwargs['dryRun']
-            print('------------dry run-------------------')
+            
+            if self.env.dryRun == True:
+                runtype = 'dry run'
+            else:
+                runtype = 'live run'
+            print(f'------------{runtype}-------------------')
 
         landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterDate(self.env.startDate,
                                                                            self.env.endDate).filterBounds(studyArea)
@@ -682,7 +687,7 @@ if __name__ == "__main__":
         year = ee.Date("2020-01-01")
         # start/end summer:182,243
         # start/end fall: 244,304
-        seasonName = 'Summer'
+        seasonName = 'Fall'
         if seasonName == 'Fall':
             startDay = 244
             endDay = 304
