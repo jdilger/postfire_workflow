@@ -31,7 +31,7 @@ class env(object):
         # Export variables		  		         #
         ##########################################
 
-        self.assetId = "users/TEST/CAFire/SeasonComposites/Fall_Full/"
+        self.assetId = "users/TEST/CAFire/SeasonComposites/"
         self.name = "LS_"
         self.exportScale = 30
 
@@ -120,7 +120,12 @@ class functions():
         self.regionName = regionName
 
         self.studyArea = studyArea
-
+        if regionName == 'Fall':
+            self.env.assetId = self.env.assetId + r'Fall_Full/'
+        elif regionName == 'Summer':
+            self.env.assetId = self.env.assetId + r'Summer_Full/'
+        else:
+            raise Exception("Season name must be either: Summer, Fall")
 
         landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterDate(self.env.startDate,
                                                                            self.env.endDate).filterBounds(studyArea)
@@ -139,9 +144,7 @@ class functions():
         landsat7 = landsat7.select(self.env.sensorBandDictLandsatSR.get('L7'), self.env.bandNamesLandsat)
 
         landsat = landsat5.merge(landsat7).merge(landsat8)
-        # print(landsat.aggregate_array('system:index').getInfo())
-        # remove below later
-        # landsat = landsat.filterMetadata('system:index', 'equals', '2_LC08_043032_20190917')
+
         print('Number of imgs :',landsat.size().getInfo())
         if landsat.size().getInfo() > 0:
 
@@ -187,7 +190,6 @@ class functions():
             print("exporting composite")
             self.exportMap(img, studyArea, week)
 
-    # print(img.getInfo()['bands'])
 
     def addDateYear(self, img):
         # add a date and year band
@@ -649,7 +651,7 @@ class functions():
                                                      crs=self.env.epsg,
                                                      scale=self.env.exportScale)
 
-        task_ordered.start()
+        # task_ordered.start()
         print(self.env.assetId + self.env.name + regionName + year + sd + ed)
 
 
