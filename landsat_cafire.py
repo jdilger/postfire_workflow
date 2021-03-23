@@ -643,7 +643,8 @@ class functions():
                                  'metadataCloudCoverMax': str(self.env.metadataCloudCoverMax),
                                  'cloudScorePctl': str(self.env.cloudScorePctl),
                                  'hazeThresh': str(self.env.hazeThresh),
-                                 'terrainScale': str(self.env.terrainScale)})
+                                 'terrainScale': str(self.env.terrainScale),
+                                 'system:time_start': self.env.startDate})
 
         return img
 
@@ -684,7 +685,7 @@ if __name__ == "__main__":
         # 2018 starts at week 104
         startWeek = start + i
 
-        year = ee.Date("2020-01-01")
+        year = ee.Date("2019-01-01")
         # start/end summer:182,243
         # start/end fall: 244,304
         seasonName = 'Fall'
