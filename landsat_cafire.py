@@ -674,35 +674,39 @@ class functions():
             task_ordered.start()
         
 
+def get_dates_season(seasonName:str, year_ee:ee.Date):
+    if seasonName == 'Fall':
+        startDay = 244
+        endDay = 304
+    elif seasonName == 'Summer':
+        startDay = 182
+        endDay = 243
+    else:
+        print("Season name was not correctly selected: Summer, Fall")
+        return 1
+    startDate = year_ee.advance(startDay, "day")
+    endDate = year_ee.advance(endDay, "day")
+    return startDay, endDay, startDate, endDate
+
+def export_composite(func, season:str, region, year:int,dry_run:bool=True):
+    startWeek = 1 #TODO don't really need startweek delete next time there is time
+    year_ee = ee.Date(f"{str(year)}-01-01")
+    season_options = ['Summer','Fall']
+    if season in season_options:
+        startDay, endDay, startDate, endDate = get_dates_season(season, year_ee)
+        func.main(region, startDate, endDate, startDay, endDay, startWeek, season,dryRun=dry_run)
+    elif season.lower() == 'both':
+        for s in season_options:
+                startDay, endDay, startDate, endDate = get_dates_season(s, year_ee)
+                func.main(region, startDate, endDate, startDay, endDay, startWeek, s,dryRun=dry_run)
+
 
 if __name__ == "__main__":
 
     ee.Initialize()
-
-    start = 0
-
-    for i in range(0, 1, 1):
-        # 2018 starts at week 104
-        startWeek = start + i
-
-        year = ee.Date("2019-01-01")
-        # start/end summer:182,243
-        # start/end fall: 244,304
-        seasonName = 'Fall'
-        if seasonName == 'Fall':
-            startDay = 244
-            endDay = 304
-        elif seasonName == 'Summer':
-            startDay = 182
-            endDay = 243
-        else:
-            print("Season name was not correctly selected: Summer, Fall")
-            break   
-
-        startDate = year.advance(startDay, "day").advance(startWeek, 'year')
-        endDate = year.advance(endDay, "day").advance(startWeek, 'year')
-
-        studyArea = ee.FeatureCollection("users/TEST/CAFire/StudyAreas/finalStudyArea").geometry().bounds().buffer(
+    studyArea = ee.FeatureCollection("users/TEST/CAFire/StudyAreas/finalStudyArea").geometry().bounds().buffer(
             5000)
-
-        functions().main(studyArea, startDate, endDate, startDay, endDay, startWeek, seasonName,dryRun=False)
+    funks = functions()
+    year = 2021
+    export_composite(funks, 'both',studyArea,year,True)
+   
