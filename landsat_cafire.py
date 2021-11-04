@@ -702,7 +702,7 @@ def export_composite(func, season:str, region, year:int,dry_run:bool=True):
 
 
 if __name__ == "__main__":
-
+    # TODO date got lost somewhere need to set that up again...
     ee.Initialize()
     studyArea = ee.FeatureCollection("users/TEST/CAFire/StudyAreas/finalStudyArea").geometry().bounds().buffer(
             5000)
