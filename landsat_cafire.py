@@ -689,6 +689,15 @@ def get_dates_season(seasonName:str, year_ee:ee.Date):
     return startDay, endDay, startDate, endDate
 
 def export_composite(func, season:str, region, year:int,dry_run:bool=True):
+    '''Initializes an export of fall, summer, or both seasonal composites. 
+
+    Args:
+        func (class): The class that handels the preprocessing and compositing of Landsat imagery. 
+        season (str): The season to export. Options are: 'Summer', 'Fall', 'both'
+        region (ee.Geometery): The AOI to export.
+        year (int): The year of the seasonal composite. 
+        dry_run (bool, optional): Whether or not to export composites. If True images will not be exported. Defaults to True.
+    '''
     startWeek = 1 #TODO don't really need startweek delete next time there is time
     year_ee = ee.Date(f"{str(year)}-01-01")
     season_options = ['Summer','Fall']
