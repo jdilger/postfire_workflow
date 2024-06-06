@@ -10,6 +10,9 @@ import sun_angles
 import view_angles
 import time
 
+PROJECT = "john-ee-282116"
+ee.Initialize(project=PROJECT)
+
 
 class env(object):
 
@@ -17,7 +20,7 @@ class env(object):
         """Initialize the environment."""
 
         # Initialize the Earth Engine object, using the authentication credentials.
-        ee.Initialize(project='john-ee-282116')
+        
 
         self.dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select(["AVE"])
         self.epsg = "EPSG:26910"
@@ -712,10 +715,9 @@ def export_composite(func, season:str, region, year:int,dry_run:bool=True):
 
 if __name__ == "__main__":
     # TODO date got lost somewhere need to set that up again...
-    ee.Initialize(project='john-ee-282116')
     studyArea = ee.FeatureCollection("users/TEST/CAFire/StudyAreas/finalStudyArea").geometry().bounds().buffer(
             5000)
     funks = functions()
     year = 2022
-    export_composite(funks, 'both',studyArea,year,True)
+    export_composite(funks, 'both',studyArea,year,False)
    
