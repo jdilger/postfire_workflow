@@ -17,7 +17,7 @@ class env(object):
         """Initialize the environment."""
 
         # Initialize the Earth Engine object, using the authentication credentials.
-        ee.Initialize()
+        ee.Initialize(project='john-ee-282116')
 
         self.dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select(["AVE"])
         self.epsg = "EPSG:26910"
@@ -32,7 +32,7 @@ class env(object):
         # Export variables		  		         #
         ##########################################
 
-        self.assetId = "users/TEST/CAFire/SeasonComposites/"
+        self.assetId = "projects/earthengine-legacy/assets/users/TEST/CAFire/SeasonComposites/"
         self.name = "LS_"
         self.exportScale = 30
 
@@ -123,9 +123,9 @@ class functions():
         
         self.studyArea = studyArea
         if regionName == 'Fall':
-            self.env.assetId = self.env.assetId + r'Fall_Full/'
+            self.assetId = self.env.assetId + r'Fall_Full/'
         elif regionName == 'Summer':
-            self.env.assetId = self.env.assetId + r'Summer_Full/'
+            self.assetId = self.env.assetId + r'Summer_Full/'
         else:
             raise Exception("Season name must be either: Summer, Fall")
         
@@ -139,18 +139,18 @@ class functions():
                 runtype = 'live run'
             print(f'------------{runtype}-------------------')
 
-        landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterDate(self.env.startDate,
+        landsat8 = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2').filterDate(self.env.startDate,
                                                                            self.env.endDate).filterBounds(studyArea)
         landsat8 = landsat8.filterMetadata('CLOUD_COVER', 'less_than', self.env.metadataCloudCoverMax)
         landsat8 = landsat8.select(self.env.sensorBandDictLandsatSR.get('L8'), self.env.bandNamesLandsat)
 
-        landsat5 = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR').filterDate(self.env.startDate,
+        landsat5 = ee.ImageCollection('LANDSAT/LT05/C02/T1_L2').filterDate(self.env.startDate,
                                                                            self.env.endDate).filterBounds(studyArea)
         landsat5 = landsat5.filterMetadata('CLOUD_COVER', 'less_than', self.env.metadataCloudCoverMax)
         landsat5 = landsat5.select(self.env.sensorBandDictLandsatSR.get('L5'), self.env.bandNamesLandsat).map(
             self.defringe)
 
-        landsat7 = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR').filterDate(self.env.startDate,
+        landsat7 = ee.ImageCollection('LANDSAT/LE07/C02/T1_L2').filterDate(self.env.startDate,
                                                                            self.env.endDate).filterBounds(studyArea)
         landsat7 = landsat7.filterMetadata('CLOUD_COVER', 'less_than', self.env.metadataCloudCoverMax)
         landsat7 = landsat7.select(self.env.sensorBandDictLandsatSR.get('L7'), self.env.bandNamesLandsat)
@@ -660,7 +660,7 @@ class functions():
 
         task_ordered = ee.batch.Export.image.toAsset(image=img,
                                                      description=self.env.name + regionName + year + sd + ed,
-                                                     assetId=self.env.assetId + self.env.name + regionName + year + sd + ed,
+                                                     assetId=self.assetId + self.env.name + regionName + year + sd + ed,
                                                      region=geom['coordinates'],
                                                      maxPixels=1e13,
                                                      crs=self.env.epsg,
@@ -712,10 +712,10 @@ def export_composite(func, season:str, region, year:int,dry_run:bool=True):
 
 if __name__ == "__main__":
     # TODO date got lost somewhere need to set that up again...
-    ee.Initialize()
+    ee.Initialize(project='john-ee-282116')
     studyArea = ee.FeatureCollection("users/TEST/CAFire/StudyAreas/finalStudyArea").geometry().bounds().buffer(
             5000)
     funks = functions()
-    year = 2021
+    year = 2022
     export_composite(funks, 'both',studyArea,year,True)
    
