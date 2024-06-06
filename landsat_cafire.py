@@ -11,7 +11,9 @@ import view_angles
 import time
 
 PROJECT = "john-ee-282116"
-ee.Initialize(project=PROJECT)
+#need auth_mode gcloud-legacy for exporting to legacy assets
+# ee.Authenticate(force=True,auth_mode='gcloud-legacy') 
+ee.Initialize()
 
 
 class env(object):
