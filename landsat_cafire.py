@@ -325,9 +325,10 @@ class functions():
             dem = self.env.dem
 
             # Extract image metadata about solar position
-            SZ_rad = ee.Image.constant(ee.Number(img.get('SOLAR_ZENITH_ANGLE'))).multiply(degree2radian).clip(
+            solar_zenith_angle = ee.Number(90).subtract(ee.Number(img.get('SUN_ELEVATION')))
+            SZ_rad = ee.Image.constant(solar_zenith_angle).multiply(degree2radian).clip(
                 img.geometry().buffer(10000));
-            SA_rad = ee.Image.constant(ee.Number(img.get('SOLAR_AZIMUTH_ANGLE'))).multiply(degree2radian).clip(
+            SA_rad = ee.Image.constant(ee.Number(img.get('SUN_AZIMUTH'))).multiply(degree2radian).clip(
                 img.geometry().buffer(10000));
 
             # Creat terrain layers
