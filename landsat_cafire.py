@@ -179,7 +179,7 @@ class functions():
             # mask clouds using cloud mask function
             if self.env.shadowMask == True:
                 # print "shadow masking"
-                self.fullCollection = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterBounds(studyArea).select(
+                self.fullCollection = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2').filterBounds(studyArea).select(
                     self.env.sensorBandDictLandsatSR.get('L8'), self.env.bandNamesLandsat)
                 landsat = self.maskShadows(landsat)
 
