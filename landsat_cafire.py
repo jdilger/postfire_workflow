@@ -93,7 +93,7 @@ class env(object):
         self.divideBands = ee.List(['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
         self.bandNamesLandsat = ee.List(
             ['blue', 'green', 'red', 'nir', 'swir1', 'temp', 'swir2', 'sr_atmos_opacity', 'pixel_qa', 'radsat_qa'])
-        self.sensorBandDictLandsatSR = ee.Dictionary({'L8': ee.List(["SR_B3","SR_B4","SR_B5","SR_B6","SR_B7", "ST_B10", "SR_B7", "SR_QA_AEROSOL", "QA_PIXEL", "QA_RADSAT"]), \
+        self.sensorBandDictLandsatSR = ee.Dictionary({'L8': ee.List(["SR_B2","SR_B3","SR_B4","SR_B5","SR_B6", "ST_B10", "SR_B7", "SR_QA_AEROSOL", "QA_PIXEL", "QA_RADSAT"]), \
                                                       'L7': ee.List([0, 1, 2, 3, 4, 5, 6, 7, 9, 10]), \
                                                       'L5': ee.List([0, 1, 2, 3, 4, 5, 6, 7, 9, 10]), \
                                                       'L4': ee.List([0, 1, 2, 3, 4, 5, 6, 7, 9, 10])})
