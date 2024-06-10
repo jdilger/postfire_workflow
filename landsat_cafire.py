@@ -228,27 +228,34 @@ class functions():
         shadow = QA.bitwiseAnd(8).neq(0);
         cloud = QA.bitwiseAnd(32).neq(0);
         return img.updateMask(shadow.Not()).updateMask(cloud.Not()).copyProperties(img)
-
     def scaleLandsat(self, img):
-        """Landast is scaled by factor 0.0001 """
-        temp = img.select(ee.List(['temp'])).multiply(0.1)
-        scaled = ee.Image(img).select(self.env.divideBands).multiply(ee.Number(0.0001))
+        """Landsat is scaled using Collection 2 factors."""
 
-        return img.select(['TDOMMask']).addBands(scaled).addBands(temp)
+        # Apply scaling and offset for optical bands
+        optical_bands = img.select(self.env.divideBands).multiply(0.0000275).add(-0.2)
+        # Apply scaling and offset for the thermal band
+        thermal_band = img.select(ee.List(['temp'])).multiply(0.00341802).add(149.0)
+        
+        # Combine the scaled bands with the original TDOMMask
+        scaled_image = img.select(['TDOMMask']).addBands(optical_bands).addBands(thermal_band)
 
+        return scaled_image
+ 
     def reScaleLandsat(self, img):
-        """Landast is scaled by factor 0.0001 """
+        """Reverts the scaling applied to Landsat Collection 2 data."""
+        # Define band names for optical and thermal bands
+        optical_bands = self.env.divideBands
+        thermal_band = ee.List(['temp'])
+        
+        # Reverse scaling and offset for optical bands
+        optical_scaled = img.select(optical_bands).subtract(-0.2).divide(0.0000275)
+        # Reverse scaling and offset for the thermal band
+        thermal_scaled = img.select(thermal_band).subtract(149.0).divide(0.00341802)
+        
+        # Combine the rescaled bands and convert to int16
+        rescaled_image = ee.Image(optical_scaled.addBands(thermal_scaled)).int16()
 
-        tempBand = ee.List(['temp'])
-        temp = ee.Image(img).select(tempBand).multiply(10)
-
-        otherBands = ee.Image(img).bandNames().removeAll(tempBand)
-        scaled = ee.Image(img).select(otherBands).divide(0.0001)
-
-        image = ee.Image(scaled.addBands(temp)).int16()
-
-        return image.copyProperties(img)
-
+        return rescaled_image.copyProperties(img)
     def maskHaze(self, img):
         """ mask haze """
         opa = ee.Image(img.select(['sr_atmos_opacity']))
@@ -722,5 +729,5 @@ if __name__ == "__main__":
             5000)
     funks = functions()
     year = 2022
-    export_composite(funks, 'both',studyArea,year,False)
+    export_composite(funks, 'Summer',studyArea,year,False)
    
