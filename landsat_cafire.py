@@ -1,5 +1,6 @@
 # Sentinel-2 package
 
+from typing import Literal
 import ee
 # from Py6S import *
 import math
@@ -124,12 +125,12 @@ class functions():
 
         self.env.startDoy = startDay
         self.env.endDoy = endDay
-        self.regionName = regionName
+        self.regionName = regionName.lower()
         
         self.studyArea = studyArea
-        if regionName == 'Fall':
+        if regionName == 'fall':
             self.assetId = self.env.assetId + r'Fall_Full/'
-        elif regionName == 'Summer':
+        elif regionName == 'summer':
             self.assetId = self.env.assetId + r'Summer_Full/'
         else:
             raise Exception("Season name must be either: Summer, Fall")
@@ -687,11 +688,11 @@ class functions():
             task_ordered.start()
         
 
-def get_dates_season(seasonName:str, year_ee:ee.Date):
-    if seasonName == 'Fall':
+def get_dates_season(seasonName:Literal['summer','fall'], year_ee:ee.Date):
+    if seasonName == 'fall':
         startDay = 244
         endDay = 304
-    elif seasonName == 'Summer':
+    elif seasonName == 'summer':
         startDay = 182
         endDay = 243
     else:
@@ -701,7 +702,7 @@ def get_dates_season(seasonName:str, year_ee:ee.Date):
     endDate = year_ee.advance(endDay, "day")
     return startDay, endDay, startDate, endDate
 
-def export_composite(func, season:str, region, year:int,dry_run:bool=True):
+def export_composite(func, season:Literal['summer','fall','both'], region, year:int,dry_run:bool=True):
     '''Initializes an export of fall, summer, or both seasonal composites. 
 
     Args:
@@ -713,7 +714,7 @@ def export_composite(func, season:str, region, year:int,dry_run:bool=True):
     '''
     startWeek = 1 #TODO don't really need startweek delete next time there is time
     year_ee = ee.Date(f"{str(year)}-01-01")
-    season_options = ['Summer','Fall']
+    season_options = ['summer','fall']
     if season in season_options:
         startDay, endDay, startDate, endDate = get_dates_season(season, year_ee)
         func.main(region, startDate, endDate, startDay, endDay, startWeek, season,dryRun=dry_run)
@@ -721,6 +722,8 @@ def export_composite(func, season:str, region, year:int,dry_run:bool=True):
         for s in season_options:
                 startDay, endDay, startDate, endDate = get_dates_season(s, year_ee)
                 func.main(region, startDate, endDate, startDay, endDay, startWeek, s,dryRun=dry_run)
+    else:
+        raise NotImplemented(f"season: {season} not implemented. please select summer, fall, or both.")
 
 
 if __name__ == "__main__":
@@ -729,5 +732,5 @@ if __name__ == "__main__":
             5000)
     funks = functions()
     year = 2022
-    export_composite(funks, 'Summer',studyArea,year,False)
+    export_composite(funks, 'both',studyArea,year,False)
    
