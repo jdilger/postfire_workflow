@@ -672,7 +672,7 @@ class functions():
         year = str(self.env.startDate.get('year').getInfo());
         regionName = self.regionName.replace(" ", '_') + "_"
 
-        task_ordered = ee.batch.Export.image.toAsset(image=img,
+        task_ordered = ee.batch.Export.image.toAsset(image=img.set({'system:time_start':self.env.startDate}),
                                                      description=self.env.name + regionName + year + sd + ed,
                                                      assetId=self.assetId + self.env.name + regionName + year + sd + ed,
                                                      region=geom['coordinates'],
