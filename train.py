@@ -110,6 +110,12 @@ First_collection = First_collection.map(lambda img: indices.addTassels(img,tcInp
 Second_collection = Second_collection.map(indices.addIndices)
 Second_collection = Second_collection.map(lambda img: indices.addTassels(img,tcInputBands))
 
+# // Get list of unique years in data
+year_hist = data.reduceColumns(
+  reducer=ee.Reducer.frequencyHistogram(),
+  selectors=['Year']).get('histogram')
+year_list = ee.Dictionary(year_hist).keys()
+
 if __name__ == "__main__":
     # dev tests
     assert lc07.first().getInfo()["properties"]["land_class"] == 0
