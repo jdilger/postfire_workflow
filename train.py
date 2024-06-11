@@ -1,4 +1,5 @@
 import ee
+import ee.batch
 
 import train_features as tfeats
 import indices
@@ -186,7 +187,17 @@ training_list = year_list.map(
         yr, First_collection=First_collection, Second_collection=Second_collection
     )
 )
+
 training = ee.FeatureCollection(training_list).flatten()
+training = training.map(lambda f: f.setGeometry(ee.Geometry.Point([0,0])))
+dst = "CAFires_traning_data_dev_6_1_2024"
+ee.batch.Export.table.toAsset(
+    collection=training,
+    description=dst,
+    assetId=f"projects/sig-ee/PostFireVeg/{dst}"
+).start()
+
+
 if __name__ == "__main__":
     # dev tests
 
