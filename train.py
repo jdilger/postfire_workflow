@@ -1,6 +1,7 @@
 import ee
 
 import train_features as tfeats
+import indices
 
 ee.Initialize()
 
@@ -91,9 +92,27 @@ data = _all_data.filter(
 # //Only use year and the land class atrributes 
 data = data.select(['Year',classFieldName])
 
+First_collection = tfeats.f
+Second_collection = tfeats.s
+
+# ///////////////////////////////////////////////////////////////////////////////
+# // CLASSIFICATION CODE
+# ///////////////////////////////////////////////////////////////////////////////
+
+# // define training variables
+tcInputBands = ee.List(['blue','green','red','nir','swir1','swir2'])
+water = ee.Image('JRC/GSW1_0/GlobalSurfaceWater').mask(ee.Image(1))
+
+# // Add common spectral indices
+# // Add tasseled cap transformation, tasseled cap angles, and NDSV
+First_collection = First_collection.map(indices.addIndices)
+First_collection = First_collection.map(lambda img: indices.addTassels(img,tcInputBands))
+Second_collection = Second_collection.map(indices.addIndices)
+Second_collection = Second_collection.map(lambda img: indices.addTassels(img,tcInputBands))
+
 if __name__ == "__main__":
     # dev tests
     assert lc07.first().getInfo()["properties"]["land_class"] == 0
     assert lc07.first().getInfo()["properties"]["CCconifer"] >= 20
-    
+    assert First_collection.first().bandNames().getInfo() == ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'date', 'year', 'TDOMMask', 'cloudMask', 'count', 'temp', 'ND_blue_green', 'ND_blue_red', 'ND_blue_nir', 'ND_blue_swir1', 'ND_blue_swir2', 'ND_green_red', 'ND_green_nir', 'ND_green_swir1', 'ND_green_swir2', 'ND_red_swir1', 'ND_red_swir2', 'ND_nir_red', 'ND_nir_swir1', 'ND_nir_swir2', 'ND_swir1_swir2', 'R_swir1_nir', 'R_red_swir1', 'EVI', 'SAVI', 'IBI', 'brightness', 'greenness', 'wetness', 'fourth', 'fifth', 'sixth', 'tcAngleBG', 'tcAngleGW', 'tcAngleBW', 'tcDistBG', 'tcDistGW', 'tcDistBW']
     
