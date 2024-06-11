@@ -899,7 +899,7 @@ WoodyWetland = ee.FeatureCollection(
         ),
     ]
 )
-barren = ee.FeatureCollection("users/TEST/barrenLandFireDerived_point_real")
+barren = ee.FeatureCollection("users/TEST/CAFire/TrainingPoints/barrenLandFireDerived")
 val = ee.FeatureCollection(
     "users/TEST/CAFire/TrainingPoints/validation_cafires_updating"
 )
