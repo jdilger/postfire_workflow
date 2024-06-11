@@ -3,6 +3,8 @@ import ee
 import train_features as tfeats
 
 ee.Initialize()
+
+
 def defineClasses(fc: ee.FeatureCollection, yr: int):
     classDict = {
         "land_class": {
@@ -59,11 +61,39 @@ makeClassFieldName = False  # //identify if you need to build the ClassFieldName
 # // Load study area
 studyArea = tfeats.studyArea
 
-lc07 = defineClasses(tfeats.lc07,2007)
-lc08 = defineClasses(tfeats.lc08,2008)
-lc14 = defineClasses(tfeats.lc14,2014)
+lc07 = defineClasses(tfeats.lc07, 2007)
+lc08 = defineClasses(tfeats.lc08, 2008)
+lc14 = defineClasses(tfeats.lc14, 2014)
+
+_all_data = ee.FeatureCollection(
+    [
+        tfeats.vhr,
+        tfeats.Developed,
+        tfeats.conifer,
+        tfeats.WoodyWetland,
+        tfeats.blackoak,
+        tfeats.water,
+        tfeats.barren2,
+        tfeats.deciduous,
+        tfeats.ceo,
+        tfeats.ceo2,
+        tfeats.lc07,
+        tfeats.lc08,
+        tfeats.lc14,
+    ]
+).flatten()
+data = _all_data.filter(
+    # removes  developed (land class 3) and unknown (land class 8)
+    # TODO: figure out what land class 8 is and remove upstream
+    ee.Filter.And(ee.Filter.neq("land_class", 3), ee.Filter.neq("land_class", 8))
+)
+
+# //Only use year and the land class atrributes 
+data = data.select(['Year',classFieldName])
 
 if __name__ == "__main__":
     # dev tests
-    assert lc07.first().getInfo()['properties']['land_class'] == 0
-    assert lc07.first().getInfo()['properties']['CCconifer'] >= 20
+    assert lc07.first().getInfo()["properties"]["land_class"] == 0
+    assert lc07.first().getInfo()["properties"]["CCconifer"] >= 20
+    
+    
