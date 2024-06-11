@@ -224,7 +224,7 @@ ee.batch.Export.table.toAsset(
     collection=training,
     description=dst,
     assetId=f"projects/sig-ee/PostFireVeg/{dst}"
-)#.start()
+).start()
 
 
 if __name__ == "__main__":
