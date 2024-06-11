@@ -545,7 +545,7 @@ conifer = (
                 {"land_class": 0, "Year": 2018, "system:index": "68"},
             ),
         ]
-    ),
+    )
 )
 WoodyWetland = ee.FeatureCollection(
     [
@@ -1127,7 +1127,7 @@ deciduous = ee.FeatureCollection(
         ee.Feature(
             ee.Geometry.Point([-120.69064213525621, 40.06785576102838]),
             {"land_class": 6, "Year": 2018, "system:index": "5"},
-        ),
+        )
     ]
 )
 f = ee.ImageCollection("users/TEST/CAFire/SeasonComposites/Fall_Full")
