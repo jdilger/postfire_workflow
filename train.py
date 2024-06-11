@@ -89,8 +89,8 @@ data = _all_data.filter(
     ee.Filter.And(ee.Filter.neq("land_class", 3), ee.Filter.neq("land_class", 8))
 )
 
-# //Only use year and the land class atrributes 
-data = data.select(['Year',classFieldName])
+# //Only use year and the land class atrributes
+data = data.select(["Year", classFieldName])
 
 First_collection = tfeats.f
 Second_collection = tfeats.s
@@ -100,25 +100,141 @@ Second_collection = tfeats.s
 # ///////////////////////////////////////////////////////////////////////////////
 
 # // define training variables
-tcInputBands = ee.List(['blue','green','red','nir','swir1','swir2'])
-water = ee.Image('JRC/GSW1_0/GlobalSurfaceWater').mask(ee.Image(1))
+tcInputBands = ee.List(["blue", "green", "red", "nir", "swir1", "swir2"])
+water = ee.Image("JRC/GSW1_0/GlobalSurfaceWater").mask(ee.Image(1))
 
 # // Add common spectral indices
 # // Add tasseled cap transformation, tasseled cap angles, and NDSV
 First_collection = First_collection.map(indices.addIndices)
-First_collection = First_collection.map(lambda img: indices.addTassels(img,tcInputBands))
+First_collection = First_collection.map(
+    lambda img: indices.addTassels(img, tcInputBands)
+)
 Second_collection = Second_collection.map(indices.addIndices)
-Second_collection = Second_collection.map(lambda img: indices.addTassels(img,tcInputBands))
+Second_collection = Second_collection.map(
+    lambda img: indices.addTassels(img, tcInputBands)
+)
 
 # // Get list of unique years in data
-year_hist = data.reduceColumns(
-  reducer=ee.Reducer.frequencyHistogram(),
-  selectors=['Year']).get('histogram')
-year_list = ee.Dictionary(year_hist).keys()
+year_list = data.aggregate_array('Year').distinct()
 
+
+def create_training_by_year(
+    yr: ee.Number,
+    First_collection: ee.ImageCollection,
+    Second_collection: ee.ImageCollection,
+):
+    yr = ee.Number(yr)
+
+    #   // Get seasonal composites for year
+    First_composite_yr = ee.Image(
+        First_collection.filterDate(
+            ee.Date.fromYMD(yr, 1, 1), ee.Date.fromYMD(yr, 12, 31)
+        ).first()
+    )
+    Second_composite_yr = ee.Image(
+        Second_collection.filterDate(
+            ee.Date.fromYMD(yr, 1, 1), ee.Date.fromYMD(yr, 12, 31)
+        ).first()
+    )
+
+    stdDevBands = ee.List(
+        [
+            "blue",
+            "green",
+            "red",
+            "nir",
+            "swir1",
+            "temp",
+            "swir2",
+            "ND_nir_red",
+            "ND_nir_swir2",
+            "ND_green_swir1",
+        ]
+    )
+    First_stdDevComposite = First_composite_yr.select(stdDevBands).reduce(
+        ee.Reducer.stdDev()
+    )
+    Second_stdDevComposite = Second_composite_yr.select(stdDevBands).reduce(
+        ee.Reducer.stdDev()
+    )
+
+    #   // Combine all bands with mask and count bands
+    First_composite_yr = First_composite_yr.addBands(First_stdDevComposite)
+    Second_composite_yr = Second_composite_yr.addBands(Second_stdDevComposite)
+
+    #   // Prepare composites
+    First_composite_yr = indices.renameBands(First_composite_yr, "First")
+    Second_composite_yr = indices.renameBands(Second_composite_yr, "Second")
+
+    #   // Combine composites
+    composite_yr = First_composite_yr.addBands(Second_composite_yr).addBands(water)
+    composite_yr = indices.addTopography(composite_yr, studyArea)
+
+    #   // Get reference data for year
+    data_yr = data.filter(ee.Filter.eq("Year", yr))
+
+    #   // Sample values from composite at data points
+    training_yr = composite_yr.sampleRegions(
+        collection=data_yr, properties=[classFieldName], scale=30
+    )
+
+    return training_yr
+
+
+training_list = year_list.map(
+    lambda yr: create_training_by_year(
+        yr, First_collection=First_collection, Second_collection=Second_collection
+    )
+)
+training = ee.FeatureCollection(training_list).flatten()
 if __name__ == "__main__":
     # dev tests
     assert lc07.first().getInfo()["properties"]["land_class"] == 0
     assert lc07.first().getInfo()["properties"]["CCconifer"] >= 20
-    assert First_collection.first().bandNames().getInfo() == ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'date', 'year', 'TDOMMask', 'cloudMask', 'count', 'temp', 'ND_blue_green', 'ND_blue_red', 'ND_blue_nir', 'ND_blue_swir1', 'ND_blue_swir2', 'ND_green_red', 'ND_green_nir', 'ND_green_swir1', 'ND_green_swir2', 'ND_red_swir1', 'ND_red_swir2', 'ND_nir_red', 'ND_nir_swir1', 'ND_nir_swir2', 'ND_swir1_swir2', 'R_swir1_nir', 'R_red_swir1', 'EVI', 'SAVI', 'IBI', 'brightness', 'greenness', 'wetness', 'fourth', 'fifth', 'sixth', 'tcAngleBG', 'tcAngleGW', 'tcAngleBW', 'tcDistBG', 'tcDistGW', 'tcDistBW']
-    
+    assert year_list.getInfo() == [2018, 2018, 2015, 2010, 2007, 2008, 2014]
+    assert First_collection.first().bandNames().getInfo() == [
+        "blue",
+        "green",
+        "red",
+        "nir",
+        "swir1",
+        "swir2",
+        "date",
+        "year",
+        "TDOMMask",
+        "cloudMask",
+        "count",
+        "temp",
+        "ND_blue_green",
+        "ND_blue_red",
+        "ND_blue_nir",
+        "ND_blue_swir1",
+        "ND_blue_swir2",
+        "ND_green_red",
+        "ND_green_nir",
+        "ND_green_swir1",
+        "ND_green_swir2",
+        "ND_red_swir1",
+        "ND_red_swir2",
+        "ND_nir_red",
+        "ND_nir_swir1",
+        "ND_nir_swir2",
+        "ND_swir1_swir2",
+        "R_swir1_nir",
+        "R_red_swir1",
+        "EVI",
+        "SAVI",
+        "IBI",
+        "brightness",
+        "greenness",
+        "wetness",
+        "fourth",
+        "fifth",
+        "sixth",
+        "tcAngleBG",
+        "tcAngleGW",
+        "tcAngleBW",
+        "tcDistBG",
+        "tcDistGW",
+        "tcDistBW",
+    ]
