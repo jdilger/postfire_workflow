@@ -38,7 +38,7 @@ class env(object):
         # Export variables		  		         #
         ##########################################
 
-        self.assetId = "projects/earthengine-legacy/assets/users/TEST/CAFire/SeasonComposites/"
+        self.assetId = "projects/earthengine-legacy/assets/projects/sig-ee/PostFireVeg/SeasonComposites/"
         self.name = "LS_"
         self.exportScale = 30
 
@@ -229,6 +229,8 @@ class functions():
         shadow = QA.bitwiseAnd(8).neq(0);
         cloud = QA.bitwiseAnd(32).neq(0);
         return img.updateMask(shadow.Not()).updateMask(cloud.Not()).copyProperties(img)
+    
+    
     def scaleLandsat(self, img):
         """Landsat is scaled using Collection 2 factors."""
 
@@ -242,6 +244,7 @@ class functions():
 
         return scaled_image
  
+    
     def reScaleLandsat(self, img):
         """Reverts the scaling applied to Landsat Collection 2 data."""
         # Define band names for optical and thermal bands
@@ -732,5 +735,5 @@ if __name__ == "__main__":
             5000)
     funks = functions()
     year = 2022
-    export_composite(funks, 'both',studyArea,year,False)
+    export_composite(funks, 'fall',studyArea,year,False)
    
