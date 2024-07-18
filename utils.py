@@ -79,5 +79,45 @@ def replace_bands(image, bands):
     return result
 
 
+def scaleLandsatC2(img):
+    """Landsat is scaled using Collection 2 factors."""
 
+    # Apply scaling and offset for optical bands
+    optical_bands = img.select(['blue', 'green', 'red', 'nir', 'swir1', 'swir2']).multiply(0.0000275).add(-0.2)
+    # Apply scaling and offset for the thermal band
+    thermal_band = img.select(ee.List(['temp'])).multiply(0.00341802).add(149.0)
+
+    # Combine the scaled bands with the original TDOMMask
+    scaled_image = optical_bands.addBands(thermal_band)
+
+    return scaled_image.set('system:time_start',img.date())
+
+def scaleLandsatC1(img):
+    """Landast is scaled by factor 0.0001 """
+    thermal_band = img.select(ee.List(['temp'])).multiply(0.1)
+    optical_bands = img.select(['blue', 'green', 'red', 'nir', 'swir1', 'swir2']).multiply(ee.Number(0.0001))
+    scaled_image = optical_bands.addBands(thermal_band)
+    return scaled_image.set('system:time_start',img.date())
+
+def scale_by_collection_type(col, c2_threshold:int)->ee.ImageCollection:
+    c1_col = col.filterDate('1970-01-01',f'{c2_threshold-1}-12-31')
+    c2_col = col.filterDate(f'{c2_threshold+1}-01-01','2050-01-01')
+    c1_col = c1_col.map(scaleLandsatC1)
+    c2_col = c2_col.map(scaleLandsatC2)
+    return c1_col.merge(c2_col)
+
+def scale_pfvms(col:ee.ImageCollection)->ee.ImageCollection:
+    """The summer and fall pfvms images are stored in unscaled values. Originally,they used Landsat Collection 1
+    which has a different scaling factor than the images retrieved after 2021 which are from Collection 2. This helper function
+    scales each image to it's correct SR value.
+
+    Args:
+        col (ee.ImageCollection): Image collection (Summer_Full or Fall_Full)
+
+    Returns:
+        ee.ImageCollection: Image collection scaled to SR values.
+    """
+    c2_start_year = 2021
+    scaled = scale_by_collection_type(col, c2_start_year)
+    return scaled
 
