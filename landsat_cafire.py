@@ -199,9 +199,6 @@ class functions():
             print("calculating medoid")
             img = self.medoidMosaic(landsat)
 
-            print("rescale")
-            img = self.reScaleLandsat(img)
-
             print("set MetaData")
             img = self.setMetaData(img)
 
@@ -735,5 +732,5 @@ if __name__ == "__main__":
             5000)
     funks = functions()
     year = 2022
-    export_composite(funks, 'fall',studyArea,year,False)
+    export_composite(funks, 'summer',studyArea,year,False)
    
