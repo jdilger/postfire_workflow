@@ -129,9 +129,9 @@ class functions():
         
         self.studyArea = studyArea
         if regionName == 'fall':
-            self.assetId = self.env.assetId + r'Fall_Full/'
+            self.assetId = self.env.assetId + r'Fall_Full_SR/'
         elif regionName == 'summer':
-            self.assetId = self.env.assetId + r'Summer_Full/'
+            self.assetId = self.env.assetId + r'Summer_Full_SR/'
         else:
             raise Exception("Season name must be either: Summer, Fall")
         
